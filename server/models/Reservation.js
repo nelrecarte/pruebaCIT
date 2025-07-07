@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
+module.exports = (sequelize, DataTypes) => {
 const Reservation = sequelize.define('Reservation', {
   id_reservation: {
     type: DataTypes.INTEGER,
@@ -37,4 +38,5 @@ Reservation.associate = (models) => {
   Reservation.belongsTo(models.Area, { foreignKey: 'id_area' });
 };
 
-module.exports = Reservation;
+return Reservation;
+};
