@@ -8,6 +8,11 @@ app.use(express.json());
 const cors = require('cors');
 app.use(cors());
 
+// Routes
+app.use('/api/users', require('./routes/userRoutes'));
+// app.use('/api/areas', require('./routes/areaRoutes'));
+// app.use('/api/reservations', require('./routes/reservationRoutes'));
+
 app.get('/', (req, res) => {
   res.send('API running!');
 });
