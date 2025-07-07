@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const areaController = require('../controllers/areaController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-router.get('/', areaController.getAreas);
-router.post('/', areaController.createArea);
-router.put('/:id_area', areaController.updateArea);
-router.delete('/:id_area', areaController.deleteArea);
-router.get('/:id_area', areaController.getAreaById);
+router.get('/', authMiddleware, areaController.getAreas);
+router.post('/', authMiddleware, areaController.createArea);
+router.put('/:id_area', authMiddleware, areaController.updateArea);
+router.delete('/:id_area', authMiddleware, areaController.deleteArea);
+router.get('/:id_area', authMiddleware, areaController.getAreaById);
 
 module.exports = router;
