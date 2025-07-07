@@ -13,6 +13,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/areas', require('./routes/areaRoutes'));
 app.use('/api/reservations', require('./routes/reservationRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 app.get('/', (req, res) => {
   res.send('API running!');
