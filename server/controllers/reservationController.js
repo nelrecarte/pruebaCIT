@@ -1,14 +1,37 @@
-const { Reservation } = require('../models');
+const { Reservation, Area, User } = require('../models');
 
 const getReservations = async (req, res) => {
   try {
-    const reservations = await Reservation.findAll();
+    const userId = req.user?.id_user;
+    const { area_id, date } = req.query;
+
+    const whereClause = {};
+
+    // If the frontend is requesting specific area/date → don't restrict by user
+    if (area_id) whereClause.id_area = area_id;
+    if (date) whereClause.date = date;
+
+    // If no filters are passed, default to current user's reservations
+    if (!area_id && !date && userId) {
+      whereClause.id_user = userId;
+    }
+
+    const reservations = await Reservation.findAll({
+      where: whereClause,
+      include: [
+        { model: Area, attributes: ['name', 'description'] },
+        { model: User, attributes: ['name', 'email'] },
+      ],
+      order: [['date', 'ASC'], ['start_time', 'ASC']],
+    });
+
     res.json(reservations);
   } catch (error) {
     console.error('Error fetching reservations:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 const createReservation = async (req, res) => {
   try {
