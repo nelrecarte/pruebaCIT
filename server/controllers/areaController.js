@@ -4,7 +4,7 @@ const { Area, Category } = require('../models');
 const getAreas = async (req, res) => {
   try {
     const areas = await Area.findAll({
-      include: [{ model: Category, attributes: ['id_category', 'name'] }],
+      include: [{ model: Category, attributes: ['name'] }],
     });
     res.json(areas);
   } catch (error) {
