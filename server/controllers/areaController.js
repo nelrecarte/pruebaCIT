@@ -1,6 +1,5 @@
 const { Area, Category } = require('../models');
 
-// Get all areas
 const getAreas = async (req, res) => {
   try {
     const areas = await Area.findAll({
@@ -13,7 +12,6 @@ const getAreas = async (req, res) => {
   }
 };
 
-// Create a new area
 const createArea = async (req, res) => {
   try {
     const { name, description, category } = req.body;
@@ -21,18 +19,17 @@ const createArea = async (req, res) => {
     const conflict = await Area.findOne({
       where: { name },
     });
-    // Check if the area already exists
+
     if (conflict) {
       return res.status(409).json({ message: 'Area already exists' });
     }
-    // Validate that the fields are not empty
+
     if (!name || !description) {
       return res
         .status(400)
         .json({ message: 'Name and description are required.' });
     }
 
-    // Find the category by name
     const foundCategory = await Category.findOne({ where: { name: category } });
     if (!foundCategory) {
       return res
@@ -48,7 +45,6 @@ const createArea = async (req, res) => {
   }
 };
 
-// Update an area
 const updateArea = async (req, res) => {
   const { id_area } = req.params;
   const { name, description } = req.body;

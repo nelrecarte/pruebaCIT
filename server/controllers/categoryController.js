@@ -17,10 +17,11 @@ const createCategory = async (req, res) => {
     const conflict = await Category.findOne({
       where: { name },
     });
-    //Revisar si la categoria ya existe
+
     if (conflict) {
       return res.status(409).json({ message: 'La categoria ya existe' });
     }
+    
     const newCategory = await Category.create({ name });
     res.status(201).json(newCategory);
   } catch (error) {

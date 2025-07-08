@@ -18,11 +18,11 @@ const createUser = async (req, res) => {
     const conflict = await User.findOne({
       where: { email },
     });
-    //Revisar si el correo ya existe
+
     if (conflict) {
       return res.status(409).json({ message: 'Email already in use.' });
     }
-    // Validar que los campos no esten vacios
+
     if (!name || !email || !password) {
       return res
         .status(400)

@@ -1,4 +1,3 @@
-// services/apiService.ts
 import Cookies from 'js-cookie';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -34,7 +33,7 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error(error.message || 'Login failed');
   }
 
-  return response.json(); // { token: '...' }
+  return response.json(); 
 };
 
 export const getUserById = async (userId: number) => {
@@ -53,7 +52,7 @@ export const getUserById = async (userId: number) => {
     throw new Error(error.message || 'User not found');
   }
 
-  return response.json(); // { id, name, email }
+  return response.json(); 
 };
 
 
@@ -73,7 +72,7 @@ export const getAreas = async () => {
     throw new Error(error.message || 'Failed to fetch areas');
   }
 
-  return response.json(); // [{ id_area, name, category }, ...]
+  return response.json();
 };
 
 export const getUserReservations = async (userId: number) => {

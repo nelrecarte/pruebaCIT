@@ -7,11 +7,8 @@ const getReservations = async (req, res) => {
 
     const whereClause = {};
 
-    // If the frontend is requesting specific area/date → don't restrict by user
     if (area_id) whereClause.id_area = area_id;
     if (date) whereClause.date = date;
-
-    // If no filters are passed, default to current user's reservations
     if (!area_id && !date && userId) {
       whereClause.id_user = userId;
     }
