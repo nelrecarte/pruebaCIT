@@ -1,40 +1,114 @@
-# pruebaCIT
+# Sistema de Reservas de Áreas Comunes
 
-Sistema de Reservas
-Aplicación web para gestionar reservas de áreas comunes (canchas, salas de reuniones, etc.) con autenticación de usuarios y disponibilidad en tiempo real.
+## Tabla de Contenidos
 
-Tabla de Contenidos
-Características
+- [Descripción](#descripción)
+- [Características](#características)
+- [Tecnologías](#tecnologías)
+- [Instalación y Configuración](#instalación-y-configuración)
+- [Uso](#uso)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Endpoints de la API](#endpoints-de-la-api)
+- [Mejoras Futuras](#mejoras-futuras)
+- [Acerca del Proyecto](#acerca-del-proyecto)
+- [Licencia](#licencia)
 
-Tecnologías
+---
 
-Instalación y Configuración
+## Descripción
 
-Uso
+Este proyecto es un sistema de reservas para áreas comunes (como canchas deportivas, salas de reuniones, etc.) que permite a los usuarios registrarse, iniciar sesión, consultar las áreas disponibles, reservar horarios y administrar sus reservas.
 
-Endpoints de la API
+---
 
-Estructura del Proyecto
+## Características
 
-Mejoras Futuras
+- Registro e inicio de sesión de usuarios con autenticación basada en JWT.
+- Visualización de áreas agrupadas por categoría.
+- Selección de fecha para reservar espacios.
+- Visualización de horarios disponibles y ya reservados.
+- Modal para realizar nuevas reservas.
+- Sección para que los usuarios puedan consultar y cancelar sus reservas.
+- Diseño limpio usando React con Next.js.
+- Backend desarrollado con Express y Sequelize (PostgreSQL).
 
-Licencia
+---
 
-Características
-# Registro, inicio de sesión y autenticación de usuarios con JWT.
+## Tecnologías
 
-Navegación por áreas comunes agrupadas por categoría.
+- **Frontend:** React, Next.js, TypeScript, CSS Modules
+- **Backend:** Node.js, Express, Sequelize, PostgreSQL
+- **Autenticación:** JWT
+- **Gestión de cookies:** js-cookie
 
-Selector de fecha para elegir el día de la reserva.
+---
 
-Visualización de horarios disponibles y reservados por área.
+## Instalación y Configuración
 
-Reservas de 1 hora con validaciones.
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/nelrecarte/pruebaCIT.git
 
-Visualización y cancelación de reservas del usuario.
+2. Instalar dependencias para frontend y backend:
+    cd client
+    npm install
+    cd ../server
+    npm install
 
-Interfaz responsiva desarrollada con Next.js y React.
+3. Configurar variables de entorno en .env para la base de datos y JWT.
 
-Backend con Express.js y Sequelize conectado a PostgreSQL.
+4. Ejecutar migraciones o sincronizar la base de datos.
+    cd server
+    node sync.js
 
-Código limpio con separación de responsabilidades y abstracción de servicios API.
+5. Ejecutar el SQL de los datos simulados para poblar la base de datos
+
+6. Instalar dependencia para poder ejecutar el proyecto 
+    npm install 
+
+7. Ejecutar el proyecto 
+    npm run dev 
+
+## Uso
+- Regístrate o inicia sesión para acceder al sistema.
+- Selecciona una fecha y un área para ver horarios disponibles.
+- Reserva un horario en la ventana modal.
+- Visualiza y administra tus reservas en la pestaña "Mis Reservas".
+
+## Estructura del Proyecto
+/server
+  ├── controllers/
+  ├── models/
+  ├── routes/
+  ├── services/
+  ├── sync.js
+  ├── db.js
+  └── server.js
+/client
+  ├── components/
+  ├── app/
+  ├── services/
+  └── next.config.js
+
+## Enpoints de la API 
+- POST /api/auth/login – Iniciar sesión y obtener token JWT.
+- POST /api/users/ - Crear un usuario
+- GET /api/users/:id – Obtener datos del usuario.
+- GET /api/areas – Obtener lista de áreas.
+- GET /api/reservations – Obtener reservas filtradas por usuario, área o fecha.
+- POST /api/reservations – Crear nueva reserva.
+- DELETE /api/reservations/:id – Cancelar reserva.
+
+## Mejoras futuras 
+- Implementar roles y permisos (admin, usuario).
+- Añadir notificaciones y recordatorios.
+- Soporte para reservas recurrentes.
+- Mejorar la UI/UX con librerías como Tailwind o Material UI.
+- Integrar pago en línea para reservas con costo.
+
+## Acerca del Proyecto 
+El proyecto desarrollado no contiene nada fuera de la normal. No utiliza librerias externas, mas que las necesarias para poder ejecutar el proyecto. El proyecto cumple con lo requerido, el cual es la creacion de usuarios y poder hacer reservas de espacios comunes. 
+
+## Licencia 
+Este proyecto está bajo la licencia MIT. 
+

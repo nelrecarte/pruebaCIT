@@ -3,10 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-import { getUserById, getAreas } from '@/services/apiService';
+import {
+  getUserById,
+  getAreas,
+  getReservationsByAreaAndDate,
+  createReservation,
+} from '@/services/apiService';
+
 import Cookies from 'js-cookie';
-import { get } from 'http';
 import TimeSlotModal from '@/components/TimeSlotModal';
+import MyReservations from '@/components/MyReservations';
+import styles from './page.module.css';
 
 interface JwtPayload {
   id_user: number;
@@ -29,187 +36,153 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [areas, setAreas] = useState<Area[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
   const [reservedSlots, setReservedSlots] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [showReservations, setShowReservations] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get('token');
-    if (!token) {
-      router.replace('/');
-      return;
-    }
+    if (!token) return router.replace('/');
 
-    let user_id: number;
     try {
-      //const decoded: JwtPayload = jwtDecode(token);
       const decoded = jwtDecode<JwtPayload>(token);
-      user_id = decoded.id_user;
-    } catch (err) {
-      console.error('Invalid token');
+      const user_id = decoded.id_user;
+
+      const fetchData = async () => {
+        try {
+          const [userData, areaData] = await Promise.all([
+            getUserById(user_id),
+            getAreas(),
+          ]);
+          setUser(userData);
+          setAreas(areaData);
+        } catch (err) {
+          console.error('Fetch error:', err);
+          Cookies.remove('token');
+          router.replace('/');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchData();
+    } catch {
       Cookies.remove('token');
       router.replace('/');
-      return;
     }
-
-    const fetchData = async () => {
-      try {
-        const [userData, areaData] = await Promise.all([
-          getUserById(user_id),
-          getAreas(),
-        ]);
-
-        setUser(userData);
-        setAreas(areaData);
-      } catch (err) {
-        console.error('Failed to fetch data:', err);
-        Cookies.remove('token');
-        router.replace('/');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
   }, [router]);
 
   const groupAreasByCategory = (areas: Area[]) => {
     const grouped: { [category: string]: Area[] } = {};
-
     areas.forEach((area) => {
       const category = area.Category?.name || 'Uncategorized';
       if (!grouped[category]) grouped[category] = [];
       grouped[category].push(area);
     });
-
     return grouped;
   };
 
   const handleAreaClick = async (area: Area) => {
     setSelectedArea(area);
-
     try {
-      const token = Cookies.get('token');
-      const res = await fetch(
-        `http://localhost:4000/api/reservations?area_id=${area.id_area}&date=${selectedDate}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const data = await getReservationsByAreaAndDate(
+        area.id_area,
+        selectedDate
       );
-
-      const data = await res.json();
-      const takenTimes = data.map((r: any) => r.start_time.slice(0, 5)); // '08:00'
-
-      setReservedSlots(takenTimes);
+      setReservedSlots(data.map((r: any) => r.start_time.slice(0, 5)));
     } catch (err) {
-      console.error('Error fetching reservations:', err);
+      console.error('Reservation fetch error:', err);
       setReservedSlots([]);
     }
   };
 
   const handleReserve = async (time: string) => {
     if (!selectedArea || !user) return;
-    const token = Cookies.get('token');
-
-    // Calculate end time by adding 1 hour to start_time
     const [hour, minute] = time.split(':').map(Number);
-    const endHour = hour + 1;
-    const end_time = `${String(endHour).padStart(2, '0')}:${String(
+    const end_time = `${String(hour + 1).padStart(2, '0')}:${String(
       minute
     ).padStart(2, '0')}:00`;
 
     try {
-      const res = await fetch('http://localhost:4000/api/reservations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          id_user: user.id_user,
-          id_area: selectedArea.id_area,
-          date: selectedDate,
-          start_time: `${time}:00`,
-          end_time,
-        }),
+      const res = await createReservation({
+        id_user: user.id_user,
+        id_area: selectedArea.id_area,
+        date: selectedDate,
+        start_time: `${time}:00`,
+        end_time,
       });
 
       if (res.ok) {
         alert('Reservation successful!');
-        setSelectedArea(null); // Close modal
+        setSelectedArea(null);
       } else {
-        alert('Could not reserve. Try another slot.');
+        alert('Failed to reserve.');
       }
     } catch (err) {
-      console.error('Reserve failed', err);
+      console.error('Reserve failed:', err);
     }
   };
 
-  if (isLoading) return <p style={{ padding: '2rem' }}>Loading...</p>;
-
   const groupedAreas = groupAreasByCategory(areas);
 
-  return (
-    <main style={{ padding: '2rem' }}>
-      <h1>Welcome, {user?.name}!</h1>
+  if (isLoading) return <p className={styles.loading}>Loading...</p>;
 
-      {/* 📅 Date Picker */}
-      <label style={{ display: 'block', marginBottom: '1.5rem' }}>
-        <strong>Select a date:</strong>{' '}
+  return (
+    <main className={styles.container} style={{ backgroundColor: '#f9fafb' }}>
+      <div className={styles.headerRow}>
+        <h1 className={styles.welcome}>Welcome, {user?.name}!</h1>
+        <button
+          className={styles.logoutButton}
+          onClick={() => {
+            Cookies.remove('token');
+            router.replace('/');
+          }}
+        >
+          Logout
+        </button>
+      </div>
+
+      <p className={styles.description}>
+        Reserve a spot in your favorite area below.
+      </p>
+
+      <label className={styles.dateLabel}>
+        <strong>Select a date:</strong>
         <input
           type='date'
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          style={{
-            padding: '0.5rem',
-            borderRadius: '6px',
-            border: '1px solid #ccc',
-            marginLeft: '0.5rem',
-          }}
-          min={new Date().toISOString().split('T')[0]} // ✅ restrict to today and forward
+          min={new Date().toISOString().split('T')[0]}
         />
       </label>
 
-      {/* 🔠 Grouped Areas */}
+      <h2 className={styles.sectionTitle}>Common Areas Available</h2>
+
       {Object.entries(groupedAreas).map(([category, categoryAreas]) => (
-        <section key={category} style={{ marginBottom: '2rem' }}>
-          <h2>{category}</h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: '1rem',
-            }}
-          >
+        <section key={category} className={styles.categorySection}>
+          <h3 style={{ color: '#111827' }}>{category}</h3>
+          <div className={styles.areaGrid}>
             {categoryAreas.map((area) => (
               <div
                 key={area.id_area}
                 onClick={() => handleAreaClick(area)}
+                className={styles.areaCard}
                 style={{
-                  padding: '1rem',
-                  borderRadius: '8px',
                   backgroundColor: getCategoryColor(area.Category.name),
-                  color: 'white',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                  cursor: 'pointer',
                 }}
               >
                 <strong>{area.name}</strong>
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                  {area.Category.name}
-                </p>
+                <p style={{ color: '#fff' }}>{area.Category.name}</p>
               </div>
             ))}
           </div>
         </section>
       ))}
 
-      {/* 🕑 Modal */}
       {selectedArea && (
         <TimeSlotModal
           areaName={selectedArea.name}
@@ -219,21 +192,29 @@ export default function DashboardPage() {
           onClose={() => setSelectedArea(null)}
         />
       )}
+
+      <button
+        className={styles.toggleButton}
+        onClick={() => setShowReservations((prev) => !prev)}
+      >
+        {showReservations ? 'Hide My Reservations' : 'Show My Reservations'}
+      </button>
+
+      {showReservations && <MyReservations userId={user?.id_user ?? 0} />}
     </main>
   );
+}
 
-  function getCategoryColor(category?: string): string {
-    if (!category) return '#6b7280'; // default gray if category is missing
-
-    switch (category.toLowerCase()) {
-      case 'deportes':
-        return '#3b82f6'; // blue
-      case 'recreation':
-        return '#10b981'; // green
-      case 'meeting':
-        return '#f59e0b'; // yellow
-      default:
-        return '#6b7280'; // gray
-    }
+function getCategoryColor(category?: string): string {
+  if (!category) return '#6b7280';
+  switch (category.toLowerCase()) {
+    case 'deportes':
+      return '#3b82f6';
+    case 'recreation':
+      return '#10b981';
+    case 'meeting':
+      return '#f59e0b';
+    default:
+      return '#6b7280';
   }
 }

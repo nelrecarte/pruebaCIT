@@ -26,7 +26,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
       alert('Registered successfully!');
       onClose();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -37,15 +37,34 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
       <div className={styles.modal}>
         <h2>Register</h2>
         <form onSubmit={handleSubmit}>
-          <input name="name" placeholder="Name" onChange={handleChange} required />
-          <input name="email" placeholder="Email" type="email" onChange={handleChange} required />
-          <input name="password" placeholder="Password" type="password" onChange={handleChange} required />
+          <input
+            name='name'
+            placeholder='Name'
+            onChange={handleChange}
+            required
+          />
+          <input
+            name='email'
+            placeholder='Email'
+            type='email'
+            onChange={handleChange}
+            required
+          />
+          <input
+            name='password'
+            placeholder='Password'
+            type='password'
+            onChange={handleChange}
+            required
+          />
           {error && <p className={styles.error}>{error}</p>}
           <div className={styles.actions}>
-            <button type="submit" disabled={loading}>
+            <button type='button' onClick={onClose}>
+              Cancel
+            </button>
+            <button type='submit' disabled={loading}>
               {loading ? 'Registering...' : 'Register'}
             </button>
-            <button type="button" onClick={onClose}>Cancel</button>
           </div>
         </form>
       </div>
